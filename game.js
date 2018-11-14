@@ -1,3 +1,26 @@
+/* Reproductor de youtube */
+var tag, firstScriptTag, player
+tag = document.createElement('script')
+tag.src = 'https://www.youtube.com/iframe_api'
+firstScriptTag = document.getElementsByTagName('script')[0]
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+
+function onYouTubeIframeAPIReady () {
+  player = new YT.Player('player', {
+    height: '100%',
+    width: '100%',
+    playerVars: {
+      autoplay: 1,
+      loop: 1,
+      controls: 0,
+      showinfo: 0,
+      autohide: 1,
+      modestbranding: 1,
+      vq: 'small'
+    }
+  })
+}
+
 $('#playlistForm').on('submit', function (ev) {
   ev.preventDefault()
   var playlistId = $('#playlistID').val()
@@ -7,11 +30,20 @@ $('#playlistForm').on('submit', function (ev) {
     success: function (data) {
       console.log(data)
       var items = []
+      var options = []
       for (var i = 0; i < 5; i++) {
         var key = Math.floor(Math.random() * data.items.length)
-        items.push('<li id="' + key + '">' + data.items[key].snippet.title + '</li>')
+        items.push('<li class="list-group-item" id="' + key + '"><button class="btn btn-primary btn-block">' + data.items[key].snippet.title + '</button></li>')
+        options.push(key)
       }
       $('#lista').html(items.join(''))
+      var selected = options[Math.floor(Math.random() * options.length)]
+      player.loadVideoById({
+        videoId: data.items[selected].snippet.resourceId.videoId,
+        startSeconds: 60,
+        endSeconds: 70,
+        suggestedQuality: 'small'
+      })
     }
   })
 })
