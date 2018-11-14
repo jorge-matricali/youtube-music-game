@@ -17,15 +17,31 @@ function onYouTubeIframeAPIReady () {
       autohide: 1,
       modestbranding: 1,
       vq: 'small'
+    },
+    events: {
+      'onError': function () {
+        console.log('The selected song cannot be played. Skipping to the next song...')
+        pickSongs(playlistId)
+      }
     }
   })
 }
 
-$('#playlistForm').on('submit', function (ev) {
-  ev.preventDefault()
-  var playlistId = $('#playlistID').val()
+var selected, playlistId
+
+function check (choice) {
+  if (selected === parseInt($(choice).val())) {
+    alert('GOOD! :D')
+  } else {
+    alert('BAD :(')
+  }
+  pickSongs(playlistId)
+}
+
+function pickSongs(playlist) {
+  $('#lista').html()
   $.ajax({
-    url: 'https://www.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails%2Cstatus&maxResults=50&playlistId=' + playlistId + '&key=' + api_key,
+    url: 'https://www.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails%2Cstatus&maxResults=50&playlistId=' + playlist + '&key=' + api_key,
     dataType: 'json',
     success: function (data) {
       console.log(data)
@@ -33,11 +49,11 @@ $('#playlistForm').on('submit', function (ev) {
       var options = []
       for (var i = 0; i < 5; i++) {
         var key = Math.floor(Math.random() * data.items.length)
-        items.push('<li class="list-group-item" id="' + key + '"><button class="btn btn-primary btn-block">' + data.items[key].snippet.title + '</button></li>')
+        items.push('<li class="list-group-item" id="' + key + '"><button class="btn btn-primary btn-block" onclick="check(this)" value="' + key + '">' + data.items[key].snippet.title + '</button></li>')
         options.push(key)
       }
       $('#lista').html(items.join(''))
-      var selected = options[Math.floor(Math.random() * options.length)]
+      selected = options[Math.floor(Math.random() * options.length)]
       player.loadVideoById({
         videoId: data.items[selected].snippet.resourceId.videoId,
         startSeconds: 60,
@@ -46,4 +62,10 @@ $('#playlistForm').on('submit', function (ev) {
       })
     }
   })
+}
+
+$('#playlistForm').on('submit', function (ev) {
+  ev.preventDefault()
+  playlistId = $('#playlistID').val()
+  pickSongs(playlistId)
 })
